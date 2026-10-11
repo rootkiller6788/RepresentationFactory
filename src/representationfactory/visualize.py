@@ -187,14 +187,17 @@ def _html_attention(attn: dict[str, Any]) -> str:
             parts.append('<table class="heat">')
             for i, row in enumerate(head0):
                 cells = []
-                for j, v in enumerate(row):
+                for v in row:
                     # 着色：v 越大越红
                     red = int(min(1.0, v) * 200)
                     cells.append(
                         f'<td style="background:rgb({red+55},{255-red-55},{255-red-55})">'
                         f"{v:.2f}</td>"
                     )
-                marker = " ★" if j == samp.get("marker_index") else ""
+                # ★ 要标在「主题标记词所在的那一行」——行号 i 就是 query 位置。
+                # 原来比的是内层列号 j，而它每行都等于 len(row)-1：于是要么
+                # 每行都标、要么一行都不标，跟标记词在哪毫无关系。
+                marker = " ★" if i == samp.get("marker_index") else ""
                 parts.append(f"<tr><th>{i}{marker}</th>{''.join(cells)}</tr>")
             parts.append("</table>")
     return "\n".join(parts)
