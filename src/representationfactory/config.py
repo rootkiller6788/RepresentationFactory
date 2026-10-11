@@ -24,7 +24,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .schema import OBSERVATION_AXES, PROPERTIES, StateSpec
+from .schema import MODELS, OBSERVATION_AXES, PROPERTIES, StateSpec
 
 DEFAULTS: dict[str, Any] = {
     "pipeline_id": "representationfactory",
@@ -261,9 +261,10 @@ def _validate_model(cfg: dict[str, Any]) -> None:
     if not m["models"]:
         raise ValueError("model.models 不能为空")
     for name in m["models"]:
-        if name not in ("constructive", "random"):
+        if name not in MODELS:
             raise ValueError(
-                f"未知的模型 {name!r}：只支持 constructive（构造式标本）与 random（对照）"
+                f"未知的模型 {name!r}：只支持 {sorted(MODELS)} "
+                "（constructive = 构造式标本，random = 随机权重对照）"
             )
 
 

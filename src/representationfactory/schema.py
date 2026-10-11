@@ -47,6 +47,11 @@ CODE_VERSION = "representationfactory/0.1.0"
 #: ``topic`` = 语义主题（深层：语义）
 PROPERTIES: tuple[str, ...] = ("form", "role", "topic")
 
+#: 被观测的模型。``config`` 里 ``model.models`` 的合法取值就是它 ——
+#: 两边共用同一个来源，改了一处不会漏掉另一处（:meth:`StateSpec.from_spec_id`
+#: 与 :func:`config._validate_model` 都按它判）。
+MODELS: tuple[str, ...] = ("constructive", "random")
+
 #: README 第六节的三类探针。**三类都要有，缺一不可** ——
 #: 它们回答三个不同的问题，且互相验证：
 #:   similarity — 哪些 token 在表征空间里靠近？（度量层）
@@ -260,18 +265,34 @@ class StateSpec:
 
         只读命令从 ``out/curves.json`` 等产物重建 ``LabResult`` 时要用它，
         避免为了打印一条曲线而重跑整条 75s 的流水线。
+
+        **认不出来的一律抛错，不做「原样留下」的兜底**：原来的
+        ``rev.get(axis, {}).get(abbr, abbr)`` 会把 ``"constructive-xxx-..."``
+        悄悄变成 ``pooling="xxx"``，于是一个拼错的 id 会得到一个看似合法、
+        实则查不到任何曲线的 ``StateSpec`` —— 报错点离出错点很远。
         """
         parts = spec_id.split("-")
-        if len(parts) != 1 + len(OBSERVATION_AXES) - 1:
-            raise ValueError(f"spec_id 格式不符：{spec_id!r}")
+        if len(parts) != len(OBSERVATION_AXES):
+            raise ValueError(
+                f"spec_id 应分成 {len(OBSERVATION_AXES)} 段"
+                f"（{'/'.join(OBSERVATION_AXES)}），实际 {spec_id!r}"
+            )
         model = parts[0]
-        # 反查缩写表
-        rev: dict[str, dict[str, str]] = {}
-        for axis, abbr in _AXIS_ABBR.items():
-            rev[axis] = {v: k for k, v in abbr.items()}
+        if model not in MODELS:
+            raise ValueError(f"spec_id 里的模型 {model!r} 未知；合法值：{sorted(MODELS)}")
+        # 反查缩写表：{轴: {缩写: 取值}}
+        rev: dict[str, dict[str, str]] = {
+            axis: {v: k for k, v in abbr.items()} for axis, abbr in _AXIS_ABBR.items()
+        }
         kwargs: dict[str, str] = {}
         for axis, abbr in zip(OBSERVATION_AXES[1:], parts[1:]):
-            kwargs[axis] = rev.get(axis, {}).get(abbr, abbr)
+            table = rev[axis]
+            if abbr not in table:
+                raise ValueError(
+                    f"spec_id 里的 {axis} 取值 {abbr!r} 不是已知缩写；"
+                    f"合法缩写：{sorted(table)}"
+                )
+            kwargs[axis] = table[abbr]
         return cls(model=model, **kwargs)
 
     def axis(self, name: str) -> str:
