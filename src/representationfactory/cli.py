@@ -321,7 +321,7 @@ _PKG_ROOT = Path(__file__).resolve().parent.parent.parent
 
 
 def _anchor_args(args: argparse.Namespace) -> None:
-    """把 `--config` / `--out` / `--root` 的**相对路径**锚定到项目根。
+    """把 `--config` / `--out` 的**相对路径**锚定到项目根。
 
     契约是 `cd <项目目录> && python main.py ...`，从项目目录里跑时锚不锚一个样
     —— 缺陷因此**长期隐形**。一旦从别处调用（例如跨项目的批量核对
@@ -334,7 +334,10 @@ def _anchor_args(args: argparse.Namespace) -> None:
 
     绝对路径原样使用。语义与 `pytest` 的 rootdir / `cargo` / `npm --prefix` 一致。
     """
-    for name in ("config", "out", "root"):
+    # 只列举 parser 里真实存在的参数：`--config`（顶层）与 `--out`（run / visualize）。
+    # 曾经还在这里写了个 "root"，但没有任何子命令定义过 `--root` ——
+    # getattr 每次拿到 None，什么也不做，只让人误以为存在一个 --root 开关。
+    for name in ("config", "out"):
         value = getattr(args, name, None)
         if isinstance(value, str) and value:
             p = Path(value)
