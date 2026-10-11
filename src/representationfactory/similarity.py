@@ -35,8 +35,15 @@ import math
 
 from .linalg import center_columns, dot, frobenius2, gram, matmul, transpose, norm
 
-#: 三种度量。它们的**区别**是本模块存在的理由，见模块文档。
+#: 观测网格里的三种度量。它们的**区别**是本模块存在的理由，见模块文档。
+#: 这个元组同时是 ``configs/default.json`` 里 ``observation.similarities``
+#: 的合法取值集合 —— 网格基数（48 = 2×2×3×2×2）由它决定，不要往里加东西。
 SIMILARITY_METRICS: tuple[str, ...] = ("cosine", "centered_cosine", "cka")
+
+#: :func:`similarity_of` 真正能分发的全部度量 = 网格内三种 + 网格外的 ``rsa``。
+#: ``rsa`` 需要拿全部状态两两算距离矩阵（O(n²)），比另外三种贵得多，
+#: 所以不放进 48 个 spec 的网格，但 API 层保留、可以单独调用。
+DISPATCHABLE_METRICS: tuple[str, ...] = SIMILARITY_METRICS + ("rsa",)
 
 
 def cosine(u: list[float], v: list[float]) -> float:
@@ -141,7 +148,7 @@ def similarity_of(
         return linear_cka(x, y)
     if metric == "rsa":
         return rsa(x, y)
-    raise ValueError(f"未知的相似度度量 {metric!r}；合法值：{sorted(SIMILARITY_METRICS)}")
+    raise ValueError(f"未知的相似度度量 {metric!r}；合法值：{sorted(DISPATCHABLE_METRICS)}")
 
 
 def layer_similarity_matrix(
