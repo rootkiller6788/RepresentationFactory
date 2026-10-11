@@ -44,8 +44,10 @@ def make_rng(*parts: Any) -> random.Random:
 def stable_hash64(*parts: Any) -> int:
     """把若干片段映射到 64bit 无符号整数。
 
-    与 :func:`derive_seed` 的区别：那个是「取前 8 字节」，这个是**取全部**
-    再折叠，用于需要把任意字符串均匀撒到 N 个桶里的场景（如把「词形」
+    与 :func:`derive_seed` 是**同一个构造**（sha256 取前 8 字节），区别只在
+    连接符：这里用 ASCII ``US``（``\\x1f``）而不是 ``"|"``，因为片段本身
+    可能含 ``"|"`` —— 那样 ``("a|b", "c")`` 与 ``("a", "b|c")`` 会派生出
+    同一个值。用于需要把任意字符串均匀撒到 N 个桶里的场景（如把「词形」
     映射到 ±1 词形码的一个分量）。同样不用内置 ``hash()``。
     """
     joined = "\x1f".join(str(p) for p in parts)
