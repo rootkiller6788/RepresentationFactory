@@ -70,10 +70,6 @@ from .rng import make_rng
 #: 数值下限。softmax / 除法里用它挡 0，不用 ``1e-12`` 这种魔法数散落各处。
 EPS = 1e-12
 
-#: 自动标定失败（正负样本激活区间重叠）时的兜底间距。
-#: 重叠说明构造本身有问题，我们会把这件事记进 ``model.warnings`` 而不是静默继续。
-_MIN_MARGIN = 1e-3
-
 
 # ----------------------------------------------------------------------
 # 数据视图
@@ -819,7 +815,6 @@ def forward(
     第 1..l 层的输出，跑满 4 层会白算 4−l 层（合计多算 3+2+1 = 6 层，
     占标定时光的 40%）。
     """
-    n_tokens = data.n_tokens
     # 输入噪声：让「线性可分」变成一个有难度的判定（否则全是 1.000，什么也说明不了）
     noise = float(model.cfg["model"].get("input_noise", 0.0))
     h: list[list[float]] = []
@@ -842,7 +837,6 @@ def forward(
             trace.ffn_inputs.append(ffn_in)
         if stop_after is not None and l + 1 >= stop_after:
             break
-    _ = n_tokens
     return trace
 
 
