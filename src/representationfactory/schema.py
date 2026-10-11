@@ -355,29 +355,38 @@ class LayerCurve:
             return 0.0
         return self.accuracy[-1] - self.accuracy[0]
 
-    @property
-    def onset_layer(self) -> int:
-        """增幅最大的层（从上一层到该层的跳变最大）。平曲线返回最深层。"""
+    def _max_jump(self) -> tuple[int, float]:
+        """相邻层增幅最大的一段，返回 ``(accuracy 下标, 增幅)``。
+
+        用严格大于比较，所以并列时取**更浅**的那一段。
+        ``accuracy`` 不足两层时返回 ``(-1, 0.0)``。
+        """
         if len(self.accuracy) < 2:
-            return self.layers[-1] if self.layers else -1
-        best_i, best_d = 1, self.accuracy[1] - self.accuracy[0]
+            return -1, 0.0
+        best_i = 1
+        best_d = self.accuracy[1] - self.accuracy[0]
         for i in range(2, len(self.accuracy)):
             d = self.accuracy[i] - self.accuracy[i - 1]
             if d > best_d:
                 best_i, best_d = i, d
-        return self.layers[best_i]
+        return best_i, best_d
+
+    @property
+    def onset_layer(self) -> int:
+        """增幅最大的层（从上一层到该层的跳变最大）。
+
+        整条曲线是平的（所有相邻增幅相同）时没有「跳变」可言，
+        此时返回 ``layers[1]``；不足两层则返回 ``layers[-1]``。
+        """
+        i, _ = self._max_jump()
+        if i < 0:
+            return self.layers[-1] if self.layers else -1
+        return self.layers[i]
 
     @property
     def onset_jump(self) -> float:
-        """分化层的跳变幅度。"""
-        if len(self.accuracy) < 2:
-            return 0.0
-        best_i, best_d = 1, self.accuracy[1] - self.accuracy[0]
-        for i in range(2, len(self.accuracy)):
-            d = self.accuracy[i] - self.accuracy[i - 1]
-            if d > best_d:
-                best_i, best_d = i, d
-        return best_d
+        """分化层的跳变幅度（``onset_layer`` 相对上一层的增量）。"""
+        return self._max_jump()[1]
 
     @property
     def best_layer(self) -> int:
