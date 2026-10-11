@@ -286,6 +286,10 @@ def _validate_observation(cfg: dict[str, Any]) -> None:
                     f"{sorted(valid)}"
                 )
     layers = [int(x) for x in obs["layers"]]
+    if not layers:
+        raise ValueError(
+            "observation.layers 不能为空 —— 一条可观测的层都没有，曲线与矩阵会静默退化成空表"
+        )
     if sorted(set(layers)) != layers:
         raise ValueError(f"observation.layers 必须是严格递增且无重复：{layers}")
     if layers[0] != 0:
