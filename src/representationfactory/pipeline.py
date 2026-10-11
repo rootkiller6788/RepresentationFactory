@@ -404,9 +404,10 @@ def run_and_write(cfg: dict[str, Any], out_dir: str | Path) -> LabResult:
 def load_result(out_dir: str | Path) -> LabResult | None:
     """从 ``out/`` 的产物重建 ``LabResult``（只读命令用它，**不重跑流水线**）。
 
-    重建只需要 5 个产物：``curves.json`` / ``probes.json`` / ``findings.json`` /
-    ``version.json`` / ``lineage.json`` / ``corpus_stats.json`` / ``matrix.csv``。
-    任一缺失即返回 ``None``（调用方此时改为 ``run_pipeline`` 计算）。
+    重建需要 6 个产物：``curves.json`` / ``probes.json`` / ``findings.json`` /
+    ``version.json`` / ``lineage.json`` / ``corpus_stats.json``；
+    ``matrix.csv`` 可选，缺失时矩阵留空、其余字段照常。
+    任一**必需**产物缺失即返回 ``None``（调用方此时改为 ``run_pipeline`` 计算）。
     **本函数只读不写** —— 这是「只读命令不改产物」约束的底层保证。
     """
     out = Path(out_dir)
