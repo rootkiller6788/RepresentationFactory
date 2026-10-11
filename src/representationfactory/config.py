@@ -353,7 +353,9 @@ def validate(cfg: dict[str, Any]) -> None:
     """全部校验。任何一条不过就抛 —— 不静默降级。"""
     if not cfg.get("_root"):
         raise ValueError("配置缺少 _root（应通过 load_config 加载）")
-    if not cfg.get("seed"):
+    # 判「缺失」要用 is None，不能用真值：seed=0 是一个完全合法的种子，
+    # 而 0 是 falsy —— 真值判断会把它当成「没填」直接拒绝。
+    if cfg.get("seed") is None:
         raise ValueError("seed 不能为空 —— 本项目的全部结论都依赖可复现")
     if not PROPERTIES:
         raise ValueError("PROPERTIES 不能为空")
