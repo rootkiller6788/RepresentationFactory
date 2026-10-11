@@ -1,0 +1,52 @@
+{
+  "pipeline_id": "representationfactory",
+  "version_tag": "v1",
+  "seed": 20260930,
+  "corpus": {
+    "lexicon": "data/lexicon/lexicon.jsonl",
+    "sentences": "data/sentences/sentences.jsonl",
+    "name": "representationfactory-demo",
+    "n_sentences": 280
+  },
+  "model": {
+    "models": ["constructive", "random"],
+    "d_model": 48,
+    "n_layers": 4,
+    "n_heads": 4,
+    "d_ff": 96,
+    "subspaces": { "lexical": 32, "syntax": 8, "semantic": 4, "marker": 4 },
+    "code_dim": 32,
+    "code_sparsity": 6,
+    "marker_scale": 6.0,
+    "input_noise": 0.15,
+    "alibi_slopes": [0.8, 0.3, 0.0, 0.0],
+    "sink_gains": [0.0, 0.0, 1.05, 1.05],
+    "attn_code_scale": 9.0,
+    "conj_gain": 1.0,
+    "ffn_gain": 1.0,
+    "random_scale": 0.30
+  },
+  "observation": {
+    "poolings": ["token", "sentence"],
+    "similarities": ["cosine", "centered_cosine", "cka"],
+    "splits": ["by_sentence", "by_token"],
+    "projects": ["none", "pca"],
+    "layers": [0, 1, 2, 3, 4],
+    "test_fraction": 0.35,
+    "pca_components": 2,
+    "power_iters": 60,
+    "max_scatter_points": 160,
+    "attention_samples": 4,
+    "role_subsets": ["all", "ambiguous", "unambiguous"]
+  },
+  "probe": {
+    "ridge_lambda": 1.0,
+    "min_class_count": 3
+  },
+  "ablation": {
+    "reference": "constructive-tok-cos-bs-raw"
+  },
+  "select": {
+    "rule": "max_deep_gain"
+  }
+}

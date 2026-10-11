@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "representationfactory"
+version = "0.1.0"
+description = "RepresentationFactory — 把模型内部表征看清楚：逐层演化曲线 + Representation Graph"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+
+# 核心链路零第三方依赖：落地约束「4060 8G 单机可跑」。
+#
+# 这一条在本项目里代价很明确：**微型 transformer 与全部线性代数是手写的**。
+# 手写不是为了炫技，而是因为本项目要回答的是「某一层里某个属性到底可不可分」——
+# 这需要一个能被完全拆开、逐位复现的观测对象。用 PyTorch 训一个真模型，
+# 得到的是「某个 checkpoint 在某一天的样子」，没人能复核。
+# 生产环境当然该用 PyTorch / scikit-learn，因此留了 torch extra。
+dependencies = []
+
+[project.optional-dependencies]
+# 可选扩展：换成真模型（HuggingFace）与工业降维/探针实现做一致性对照
+torch = ["torch>=2.1", "transformers>=4.40"]
+dev = ["pytest>=7.4"]
+
+[project.scripts]
+representationfactory = "representationfactory.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
