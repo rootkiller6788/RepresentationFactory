@@ -255,7 +255,6 @@ def render_html(result: LabResult, out_html: str | Path) -> Path:
     ref = result.reference_run()
     cm = cross_model(result)
     scatter = result.counters.get("scatter") or {}
-    topics = sorted({p["topic"] for p in scatter.get("points", [])})
 
     # 1. 曲线：参考 run 的逐属性
     curve_svg = ""
@@ -294,7 +293,6 @@ def render_html(result: LabResult, out_html: str | Path) -> Path:
         attn_html = _html_attention(attn)
 
     # 4. 散点
-    scatter = result.counters.get("scatter") or {}
     scatter_svg = _svg_scatter(scatter)
 
     html = f"""<!doctype html>
