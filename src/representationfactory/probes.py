@@ -36,7 +36,6 @@ Cluster Probe 是本项目的主证据
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field
 from typing import Any
 
 from .capture import Capture
@@ -353,8 +352,6 @@ def run_cluster_probe(
             train_rows, test_rows = tr2, te2
             train_labels = [all_labels[r] for r in train_rows]
             test_labels = [all_labels[r] for r in test_rows]
-            counts = {lab: train_labels.count(lab) for lab in keep}
-            dropped = len(global_counts) - len(keep)
             accs: list[float] = []
             for layer in layers:
                 Xp = proj_by_layer[layer]
